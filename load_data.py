@@ -1,3 +1,4 @@
+from torch.utils.data import IterableDataset
 import torch
 import numpy as np
 import os
@@ -8,7 +9,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # get state array (step_size+stack_size-1) h, w) by file idx
 def get_state_from_index(dest_dir, step_size, stack_size, idx):
-    arr = np.load(f"{dest_dir}/state/{idx}.npy")
+    arr = np.load(f"{dest_dir}/states/{idx}.npy")
     arr = arr.reshape(step_size + stack_size - 1, 84, 84)
     return arr
 
@@ -21,7 +22,7 @@ def toFrameStack(states, stack_size):
     new_states = new_states[:,stack_size - 1:,:,:]
     return new_states
 
-class AtariPongDataset(torch.utils.data.IterableDataset):
+class AtariPongDataset(IterableDataset):
     def __init__(self, files_dir, batch_size, step_size, stack_size):
         super(AtariPongDataset).__init__()
 
@@ -89,8 +90,4 @@ class AtariPongDataset(torch.utils.data.IterableDataset):
                 rtgs_batch = np.expand_dims(rtgs_batch.astype(float), axis=-1)
                 states_batch = states_batch.astype(float) / 255.0
                 # yield return
-                yield torch.tensor(rtgs_batch, dtype=torch.float32).to(device), 
-                torch.tensor(states_batch, dtype=torch.float32).to(device), 
-                torch.tensor(actions_batch, dtype=torch.int64).to(device), 
-                torch.tensor(timesteps_batch, dtype=torch.int64).to(device)
-
+                yield torch.tensor(rtgs_batch, dtype=torch.float32).to(device), torch.tensor(states_batch, dtype=torch.float32).to(device), torch.tensor(actions_batch, dtype=torch.int64).to(device), torch.tensor(timesteps_batch, dtype=torch.int64).to(device)

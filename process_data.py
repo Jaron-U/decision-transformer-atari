@@ -2,18 +2,11 @@ import os
 import pickle
 import numpy as np
 
-game_name = "Pong"
-source_data_dir = f"downloaded_game_data/{game_name}/1/replay_logs"
-dest_dir = "game_dataset"
-step_size = 50
-chunk_size = 10000  # meta data will be chunked by each 10000 rows
-stack_size = 4      # frame stacking size (So stack_size - 1 frames are added in each states)
-
 # In the original data (the downloaded data), the latter part tends to have high rtgs. 
 # (i.e, the original data has bias in order.) For this reason, we now shuffle all the data and remove bias.
 
 # load all data into a single numpy array
-def process_data():
+def process_data(dest_dir, step_size, chunk_size):
     all_data = None
     for chunk_num in range(1000):
         # file check
@@ -49,7 +42,7 @@ def process_data():
     col += step_size
     all_timesteps = all_data[:,col:col+step_size].reshape((-1, timesteps.shape[1]))
 
-    # overwrite by new data
+    # overwrite data
     for i, start in enumerate(range(0, len(all_states_meta), chunk_size)):
         with open(f"{dest_dir}/meta{i}.pkl","wb") as f:
             pickle.dump({
@@ -59,7 +52,7 @@ def process_data():
                 "states_meta": all_states_meta[start:start+chunk_size]
             }, f)
 
-def get_max_timesteps():
+def get_max_timesteps(dest_dir):
     max_timesteps = 0
     for chunk_num in range(1000):
         # file check
