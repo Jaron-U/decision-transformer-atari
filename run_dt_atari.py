@@ -5,8 +5,8 @@ import numpy as np
 import torch
 import gzip
 import pickle
-from process_data import get_max_timesteps, process_data
-from load_data import AtariPongDataset
+from data.process_data import get_max_timesteps, process_data
+from data.load_data import AtariPongDataset
 
 
 

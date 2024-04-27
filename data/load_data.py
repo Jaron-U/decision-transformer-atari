@@ -7,6 +7,8 @@ import math
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# convert the np array data to torch tensor
+
 # get state array (step_size+stack_size-1) h, w) by file idx
 def get_state_from_index(dest_dir, step_size, stack_size, idx):
     arr = np.load(f"{dest_dir}/states/{idx}.npy")

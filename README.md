@@ -1,4 +1,14 @@
+## Introduction
+This is a project to train a model to play Atari games(`Pong` in the example) using Decision Transformer Reinforcement Learning.
+
+## Code Reference
+The code is based on the following repositories:  
+official repository: https://github.com/kzl/decision-transformer/tree/  
+minGPT: https://github.com/karpathy/minGPT/tree/master/mingpt  
+decision-transformer-tsmatz: https://github.com/tsmatz/decision-transformer  
+
 ## How to run
+### Requirements
 ```bash
 $ sudo apt-get update
 $ sudo apt install -y gcc
@@ -24,9 +34,9 @@ wget http://www.atarimania.com/roms/Roms.rar
 unrar x -r Roms.rar
 python3 -m atari_py.import_roms ROMS
 ```
-
+###
 Run the code
 ```bash
-# get and process the data
-python3 create_dataset.py
+# get and process the dataset
+python3 ./data/create_dataset.py
 ```
