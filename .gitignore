@@ -1,0 +1,7 @@
+/__pycache__/
+/downloaded_game_data/
+/game_dataset/
+/HC ROMS/
+/ROMS/
+*.png
+*.rar
