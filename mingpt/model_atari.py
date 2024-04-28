@@ -99,102 +99,7 @@ class Block(nn.Module):
         x = x + self.attn(self.ln_1(x))
         x = x + self.mlpf(self.ln_2(x))
         return x
-
-class GPT(nn.Module): # for Decision Transformer
-    def __init__(self, config):
-        super().__init__()
-
-        self.block_size = config.block_size
-        self.n_embd = config.n_embd
-
-        # build modules
-        # official DT method
-        # self.global_timestep_encoding = nn.Parameter(torch.zeros(1, config.max_timestep+1, config.n_embd))
-        # self.context_position_encoding = nn.Parameter(torch.zeros(1, config.block_size + 1, config.n_embd))
-
-        # minGPT method
-        self.global_timestep_encoding = nn.Embedding(config.max_timestep, config.n_embd)
-        self.context_position_encoding = nn.Embedding(config.block_size, config.n_embd)
-        self.dropout = nn.Dropout(config.embd_pdrop)
-
-        # transformer
-        self.block_loop = nn.ModuleList([Block(config) for _ in range(config.n_layer)])
-
-        # decoder head
-        self.norm = nn.LayerNorm(config.n_embd)
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
-
-        # initialize weights
-        self.apply(self._init_weights)
-
-    # see karpathy/minGPT for weight's initilization in OpenAI GPT
-    def _init_weights(self, module):
-        if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-            if module.bias is not None:
-                torch.nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.Embedding):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-        elif isinstance(module, nn.LayerNorm):
-            torch.nn.init.zeros_(module.bias)
-            torch.nn.init.ones_(module.weight)
     
-    def forward(self, rtgs_emb, states_emb, actions_emb, timesteps):
-        # rtgs_emb    : (batch_size, step_size, n_embd)
-        # states_emb  : (batch_size, step_size, n_embd)
-        # actions_emb : (batch_size, step_size, n_embd)
-        # timesteps   : (batch_size, step_size)  <-- but only the first step is used (other steps are ignored)
-
-        batch_size = states_emb.shape[0]
-        actual_step_size = states_emb.shape[1]
-
-        #
-        # Generate a sequence of tokens :
-        # [s], [a], [R] --> [R, s, a, R, s, a, ...]
-        #
-
-        token_emb = torch.zeros(
-            (batch_size, actual_step_size*3, self.n_embd),
-            dtype=torch.float32,
-            device=states_emb.device) # (batch_size, step_size*3, n_embd)
-        token_emb[:,::3,:] = rtgs_emb
-        token_emb[:,1::3,:] = states_emb
-        if actions_emb is not None:
-            token_emb[:,2::3,:] = actions_emb
-        
-
-        #
-        # Position encoding
-        #
-
-        timestep_start = torch.repeat_interleave(timesteps[:,0].unsqueeze(dim=-1), actual_step_size*3, dim=-1) # (batch_size, actual_step_size*3)
-        pos_global = self.global_timestep_encoding(timestep_start)
-        context_position = torch.arange(actual_step_size*3, device=states_emb.device).repeat(batch_size,1) # (batch_size, actual_step_size*3)
-        pos_relative = self.context_position_encoding(context_position)
-        pos_emb = pos_global + pos_relative
-
-        x = self.dropout(token_emb + pos_emb)
-    
-        #
-        # Apply multi-layered MHA (multi-head attentions)
-        #
-
-        for block in self.block_loop:
-            x = block(x)
-
-        x = self.norm(x)
-
-        #
-        # Apply Feed-Forward and Return
-        #
-
-        logits = self.lm_head(x)
-        # only get predictions from states
-        logits = logits[:,1::3,:]
-
-        return logits
-
-
 # embedding action, state, and rtg
 class Embeddings_Atari(nn.Module):
     def __init__(self, config):
@@ -238,12 +143,6 @@ class Embeddings_Atari(nn.Module):
         # rtgs        : (batch_size, step_size, 1)
         # states      : (batch_size, step_size, 4, 84, 84)
         # actions     : (batch_size, step_size)
-
-        ### outputs
-        # rtgs_emb    : (batch_size, step_size, n_embd)
-        # states_emb  : (batch_size, step_size, n_embd)
-        # actions_emb : (batch_size, step_size, n_embd)
-
         rtgs_emb = self.rtg_embedding(rtgs)
         
         states_shp = states.reshape(-1, 4, 84, 84)
@@ -256,6 +155,118 @@ class Embeddings_Atari(nn.Module):
             actions_emb = self.action_embedding(actions)
         
         return rtgs_emb, states_emb, actions_emb
+
+
+class GPT(nn.Module): # for Decision Transformer
+    def __init__(self, config):
+        super().__init__()
+
+        self.block_size = config.block_size
+        self.n_embd = config.n_embd
+
+        # embedding action, state, and rtg
+        self.embedding_atari = Embeddings_Atari(config)
+
+        # build modules
+        # official DT method
+        # self.global_timestep_encoding = nn.Parameter(torch.zeros(1, config.max_timestep+1, config.n_embd))
+        # self.context_position_encoding = nn.Parameter(torch.zeros(1, config.block_size + 1, config.n_embd))
+
+        # minGPT method
+        self.global_timestep_encoding = nn.Embedding(config.max_timestep, config.n_embd)
+        self.context_position_encoding = nn.Embedding(config.block_size, config.n_embd)
+        self.dropout = nn.Dropout(config.embd_pdrop)
+
+        # transformer
+        self.block_loop = nn.ModuleList([Block(config) for _ in range(config.n_layer)])
+
+        # decoder head
+        self.norm = nn.LayerNorm(config.n_embd)
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+
+        # initialize weights
+        self.apply(self._init_weights)
+
+    # see karpathy/minGPT for weight's initilization in OpenAI GPT
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+        elif isinstance(module, nn.LayerNorm):
+            torch.nn.init.zeros_(module.bias)
+            torch.nn.init.ones_(module.weight)
+    
+    def forward(self, states, actions, rtgs, timesteps):
+        ### inputs
+        # rtgs        : (batch_size, step_size, 1)
+        # states      : (batch_size, step_size, 4, 84, 84)
+        # actions     : (batch_size, step_size)
+        # timesteps   : (batch_size, step_size)  <-- but only the first step is used (other steps are ignored)
+
+        rtgs_emb, states_emb, actions_emb = self.embedding_atari(states, actions, rtgs)
+        # rtgs_emb    : (batch_size, step_size, n_embd)
+        # states_emb  : (batch_size, step_size, n_embd)
+        # actions_emb : (batch_size, step_size, n_embd)
+
+        batch_size = states_emb.shape[0]
+        actual_step_size = states_emb.shape[1]
+
+        #
+        # Generate a sequence of tokens :
+        # [s], [a], [R] --> [R, s, a, R, s, a, ...]
+        #
+
+        token_emb = torch.zeros(
+            (batch_size, actual_step_size*3, self.n_embd),
+            dtype=torch.float32,
+            device=states_emb.device) # (batch_size, step_size*3, n_embd)
+        token_emb[:,::3,:] = rtgs_emb
+        token_emb[:,1::3,:] = states_emb
+        if actions_emb is not None:
+            token_emb[:,2::3,:] = actions_emb
+        
+        #
+        # Position encoding
+        #
+
+        timestep_start = torch.repeat_interleave(timesteps[:,0].unsqueeze(dim=-1), actual_step_size*3, dim=-1) # (batch_size, actual_step_size*3)
+        pos_global = self.global_timestep_encoding(timestep_start)
+        context_position = torch.arange(actual_step_size*3, device=states_emb.device).repeat(batch_size,1) # (batch_size, actual_step_size*3)
+        pos_relative = self.context_position_encoding(context_position)
+        pos_emb = pos_global + pos_relative
+
+        x = self.dropout(token_emb + pos_emb)
+    
+        #
+        # Apply multi-layered MHA (multi-head attentions)
+        #
+
+        for block in self.block_loop:
+            x = block(x)
+
+        x = self.norm(x)
+
+        #
+        # Apply Feed-Forward and Return
+        #
+
+        logits = self.lm_head(x)
+        # only get predictions from states
+        logits = logits[:,1::3,:]
+
+        return logits
+
+    def select_action(self, states, actions, rtgs, timesteps):
+        logits = self.forward(states, actions, rtgs, timesteps)
+        logits = logits[:, -1, :]
+        probs = F.softmax(logits, dim=-1)
+        sampled_action = torch.multinomial(probs, num_samples=1)
+        return sampled_action
+
+
 
 
 

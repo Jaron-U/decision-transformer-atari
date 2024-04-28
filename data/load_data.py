@@ -91,5 +91,11 @@ class AtariPongDataset(IterableDataset):
                 # transform
                 rtgs_batch = np.expand_dims(rtgs_batch.astype(float), axis=-1)
                 states_batch = states_batch.astype(float) / 255.0
+                
+                # to tensor
+                rtgs_tensor = torch.tensor(rtgs_batch, dtype=torch.float32).to(device)
+                states_tensor = torch.tensor(states_batch, dtype=torch.float32).to(device)
+                actions_tensor = torch.tensor(actions_batch, dtype=torch.int64).to(device)
+                timesteps_tensor = torch.tensor(timesteps_batch, dtype=torch.int64).to(device)
                 # yield return
-                yield torch.tensor(rtgs_batch, dtype=torch.float32).to(device), torch.tensor(states_batch, dtype=torch.float32).to(device), torch.tensor(actions_batch, dtype=torch.int64).to(device), torch.tensor(timesteps_batch, dtype=torch.int64).to(device)
+                yield states_tensor, actions_tensor, rtgs_tensor, timesteps_tensor

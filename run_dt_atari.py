@@ -1,10 +1,11 @@
 import io
 import math
-import argparse
-import numpy as np
 import torch
 import gzip
 import pickle
+import random
+import argparse
+import numpy as np
 from data.process_data import get_max_timesteps, process_data
 from data.load_data import AtariPongDataset
 from mingpt.model_atari import GPT, GPTConfig, Embeddings_Atari
@@ -28,10 +29,10 @@ if __name__ == "__main__":
 
     scr_dir = f"downloaded_game_data/{args.game}/1/replay_logs"
 
-    env = atari_py.ALEInterface()
-    env.loadROM(atari_py.get_game_path('pong'))
-    env.reset_game()
-    legal_actions = env.getMinimalActionSet()
+    ale = atari_py.ALEInterface()
+    ale.loadROM(atari_py.get_game_path(args.game.lower()))
+    ale.reset_game()
+    legal_actions = ale.getMinimalActionSet()
     num_actions = len(legal_actions) # 6
 
     # get max timesteps
@@ -45,8 +46,7 @@ if __name__ == "__main__":
                           n_head=8, n_layer=6, n_embd=128)
     
     model = GPT(gptConfig)
-    atari_emb = Embeddings_Atari(gptConfig)
 
-    
+
     
     
