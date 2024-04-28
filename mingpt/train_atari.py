@@ -19,13 +19,15 @@ import random
 import atari_py
 from collections import deque
 import cv2
+import torch.nn.functional as F
+import math
 
-class TrainConfig():
+class TrainConfig:
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-class Env():
+class Env:
     def __init__(self, game, seed, device, stack_size):
         self.device = device
         self.stack_size = stack_size # Number of frames to concatenate
@@ -84,5 +86,63 @@ class Env():
         self.state_buffer.append(observation)
         return torch.stack(list(self.state_buffer), dim=0), reward, done
 
+class Trainer:
+    def __init__(self, trainConfig, dataset):
+        self.trainConfig = trainConfig
+        self.dataset = dataset
+        self.model = trainConfig.model
+        self.device = trainConfig.device
+        self.step_size = trainConfig.step_size
+        self.max_timesteps = trainConfig.max_timesteps
+        self.stack_size = trainConfig.stack_size
+        self.batch_size = trainConfig.batch_size
+        self.epochs = trainConfig.epochs
+        self.learning_rate = trainConfig.learning_rate
+        self.target_rtg = trainConfig.target_rtg
+        self.lr_decay = trainConfig.lr_decay
+    
+    def train_game(self):
+        # get total number of batch
+        total_batch = len(self.dataset)
 
+        # set cosine annealing cycle
+        lr_tokens_cycle = total_batch * self.batch_size * self.step_size // 20
+        processed_tokens = 0
 
+        # set optimizer
+        optimizer = self.model.configure_optimizers(self.trainConfig)
+
+        for epoch in range(self.epochs):
+            for i, (states, actions, rtgs, timesteps) in enumerate(self.dataset):
+                states = states.to(self.device)
+                actions = actions.to(self.device)
+                rtgs = rtgs.to(self.device)
+                timesteps = timesteps.to(self.device)
+
+                # create a mask for calculating loss
+                mask = (timesteps[:,1:]==0).int()
+                mask = torch.cat((torch.zeros((mask.shape[0], 1), dtype=torch.int64).to(self.device), mask), dim=1)
+                mask = torch.cumsum(mask, dim=1)
+                labels = actions.masked_fill(mask != 0, -100)
+
+                # get the action
+                logits = self.model(states = states, actions = actions, 
+                                    rtgs = rtgs, timesteps = timesteps)
+
+                self.model.zero_grad()
+                loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), labels.reshape(-1))
+                loss.backward()
+                optimizer.step()
+
+                # decay the learning rate based on our progress
+                if self.lr_decay:
+                    processed_tokens += (labels >= 0).sum()
+                    lr_mult = max(0.1, 0.5 * (1.0 + math.cos(math.pi * float(processed_tokens) / float(lr_tokens_cycle))))
+                    lr = self.learning_rate * lr_mult
+                    for param_group in optimizer.param_groups:
+                        param_group["lr"] = lr
+                else:
+                    lr = self.learning_rate
+                
+                print(f"epoch {epoch+1}/{self.epochs} iter {i + 1}/{total_batch}" 
+                      f"- loss: {loss.item() :2.4f} - lr: {lr:e}", end="\r")

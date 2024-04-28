@@ -22,6 +22,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, default=123)
     parser.add_argument('--stack_size', type=int, default=4)
     parser.add_argument('--epochs', type=int, default=5)
+    parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--chunk_size', type=int, default=10000)
     parser.add_argument('--step_size', type=int, default=50)
     parser.add_argument('--game', type=str, default='Pong')
@@ -57,9 +58,14 @@ if __name__ == "__main__":
     
     model = GPT(gptConfig).to(device)
 
-    trainConfig = TrainConfig(target_rtg = 20.0, seed = seed, game_name = game_name, model = model, 
-              device=device, stack_size=args.stack_size, 
-              max_timesteps=max_timesteps, step_size=args.step_size)
+    # different game has different target_rtg
+    trainConfig = TrainConfig(target_rtg = 20.0, seed = seed, 
+                              game_name = game_name, model = model, 
+                              device=device, stack_size=args.stack_size, 
+                              max_timesteps=max_timesteps, step_size=args.step_size,
+                              weight_decay=0.1, epochs=args.epochs,
+                              learing_rate=args.learning_rate, betas=(0.9, 0.999),
+                              batch_size=args.batch_size, lr_decay=False)
    
     # evaluate the model
     eval_game(trainConfig)
