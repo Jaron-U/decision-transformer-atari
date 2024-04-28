@@ -5,3 +5,4 @@
 /ROMS/
 *.png
 *.rar
+*/__pycache__/
