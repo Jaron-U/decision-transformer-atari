@@ -21,18 +21,19 @@ from torch.nn import functional as F
 #     def forward(self, x):
 #         return 0.5 * x (1.0 + torch.tanh(math.sqrt(2 / math.pi) * (x+0.044715 * torch.pow(x, 3))))
 
-class GPTConfig:
+class GPTConfig():
     attn_pdrop = 0.1
     resid_pdrop = 0.1
     embd_pdrop = 0.1
     def __init__(self, step_size, max_timestep, 
-                 vocab_size, n_head, n_layer, n_embd):
+                 vocab_size, n_head, n_layer, n_embd, device='cuda'):
         self.block_size = step_size * 3
         self.max_timestep = max_timestep
         self.vocab_size = vocab_size
         self.n_head = n_head
         self.n_layer = n_layer
         self.n_embd = n_embd  # each head has n_embd / n_head
+        self.device = device
 
 class CausalSelfAttention(nn.Module):
     """
@@ -143,7 +144,7 @@ class Embeddings_Atari(nn.Module):
         # rtgs        : (batch_size, step_size, 1)
         # states      : (batch_size, step_size, 4, 84, 84)
         # actions     : (batch_size, step_size)
-        rtgs_emb = self.rtg_embedding(rtgs)
+        rtgs_emb = self.rtgs_embedding(rtgs)
         
         states_shp = states.reshape(-1, 4, 84, 84)
         states_emb = self.state_embedding(states_shp)
@@ -165,7 +166,7 @@ class GPT(nn.Module): # for Decision Transformer
         self.n_embd = config.n_embd
 
         # embedding action, state, and rtg
-        self.embedding_atari = Embeddings_Atari(config)
+        self.embedding_atari = Embeddings_Atari(config).to(config.device)
 
         # build modules
         # official DT method
@@ -260,6 +261,13 @@ class GPT(nn.Module): # for Decision Transformer
         return logits
 
     def select_action(self, states, actions, rtgs, timesteps):
+        """
+        Select an action based on the current state, action, and rtg.
+        Corresponds to the "sample" function in mingpt/utils of the original DT code.
+        https://github.com/kzl/decision-transformer/blob/master/atari/mingpt/utils.py
+        Because of the parameterization of the "sample" function, 
+            this code functions the same as the "sample" of riginal code
+        """
         logits = self.forward(states, actions, rtgs, timesteps)
         logits = logits[:, -1, :]
         probs = F.softmax(logits, dim=-1)

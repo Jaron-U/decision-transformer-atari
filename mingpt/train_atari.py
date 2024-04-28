@@ -20,6 +20,11 @@ import atari_py
 from collections import deque
 import cv2
 
+class TrainConfig():
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
 class Env():
     def __init__(self, game, seed, device, stack_size):
         self.device = device
