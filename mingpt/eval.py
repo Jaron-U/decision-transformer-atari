@@ -62,7 +62,7 @@ def eval_game(trainConfig: TrainConfig):
             # get the next action
             sampled_action = model.select_action(states = batch_states, actions = batch_actions, 
                                                  rtgs = batch_rtgs, timesteps = batch_timestep)
- 
+        print(f"Round {i+1}/10 reward: {rewards}", end="\r")
     
     total_returns = np.sum(total_reward)
     eval_return = np.mean(total_reward)

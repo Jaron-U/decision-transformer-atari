@@ -9,13 +9,9 @@ import numpy as np
 from data.process_data import get_max_timesteps, process_data
 from data.load_data import AtariPongDataset
 from mingpt.model_atari import GPT, GPTConfig, Embeddings_Atari
-from mingpt.train_atari import TrainConfig
+from mingpt.train_atari import TrainConfig, Trainer
 from mingpt.eval import eval_game
 import atari_py
-
-
-
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -48,13 +44,12 @@ if __name__ == "__main__":
 
     # get max timesteps
     max_timesteps = get_max_timesteps(args.dest_dir)
-    print(f"max_timesteps: {max_timesteps}")
 
     # load dataset
-    dataset = AtariPongDataset(args.dest_dir, 3, args.step_size, args.stack_size)
+    dataset = AtariPongDataset(args.dest_dir, args.batch_size, args.step_size, args.stack_size)
 
-    gptConfig = GPTConfig(step_size=args.step_size, max_timestep=max_timesteps, vocab_size=num_actions,
-                          n_head=8, n_layer=6, n_embd=128)
+    gptConfig = GPTConfig(step_size=args.step_size, max_timestep=max_timesteps, 
+                          vocab_size=num_actions, n_head=8, n_layer=6, n_embd=128)
     
     model = GPT(gptConfig).to(device)
 
@@ -64,12 +59,18 @@ if __name__ == "__main__":
                               device=device, stack_size=args.stack_size, 
                               max_timesteps=max_timesteps, step_size=args.step_size,
                               weight_decay=0.1, epochs=args.epochs,
-                              learing_rate=args.learning_rate, betas=(0.9, 0.999),
+                              learning_rate=args.learning_rate, betas=(0.9, 0.999),
                               batch_size=args.batch_size, lr_decay=False)
-   
+       
+    # train the model
+    trainer = Trainer(trainConfig, dataset)
+    trainer.train_game()
+
+    # save the model
+    torch.save(model.state_dict(), f"{game_name}_model.pth")
+
     # evaluate the model
     eval_game(trainConfig)
-
 
     
     

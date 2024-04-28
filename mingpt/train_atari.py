@@ -145,4 +145,5 @@ class Trainer:
                     lr = self.learning_rate
                 
                 print(f"epoch {epoch+1}/{self.epochs} iter {i + 1}/{total_batch}" 
-                      f"- loss: {loss.item() :2.4f} - lr: {lr:e}", end="\r")
+                      f" - loss: {loss.item() :2.4f} - lr: {lr:e}", end="\r")
+        print("\nTraining done!")
