@@ -6,17 +6,18 @@ import numpy as np
 from mingpt.train_atari import TrainConfig
 
 @torch.no_grad()
-def eval_game(trainConfig: TrainConfig):
+def eval_game(trainConfig: TrainConfig, model):
     target_rtg = trainConfig.target_rtg
     seed = trainConfig.seed
     game_name = trainConfig.game_name
-    model = trainConfig.model
     device = trainConfig.device
     stack_size = trainConfig.stack_size
     max_timesteps = trainConfig.max_timesteps
     step_size = trainConfig.step_size
 
     env = Env(game_name, seed, device, stack_size)
+
+    model.eval()
     
     total_reward = []
     for i in range(10):
@@ -62,6 +63,7 @@ def eval_game(trainConfig: TrainConfig):
             # get the next action
             sampled_action = model.select_action(states = batch_states, actions = batch_actions, 
                                                  rtgs = batch_rtgs, timesteps = batch_timestep)
+            
         print(f"Round {i+1}/10 reward: {rewards}", end="\r")
     
     total_returns = np.sum(total_reward)

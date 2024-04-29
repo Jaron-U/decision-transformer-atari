@@ -69,8 +69,9 @@ if __name__ == "__main__":
     # save the model
     torch.save(model.state_dict(), f"{game_name}_model.pth")
 
+    # model.load_state_dict(torch.load(f"{game_name}_model.pth"))
     # evaluate the model
-    eval_game(trainConfig)
+    eval_game(trainConfig, model)
 
     
     
