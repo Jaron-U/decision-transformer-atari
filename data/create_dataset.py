@@ -1,10 +1,10 @@
 import math
 import numpy as np
-
 import gzip
 import pickle
 from data.process_data import process_data
 
+files_number = 5
 game_name = "Pong"
 source_data_dir = f"downloaded_game_data/{game_name}/1/replay_logs"
 dest_dir = "game_dataset"
@@ -21,7 +21,7 @@ timesteps_chunk = []
 states_meta_chunk = []
 
 # run loop for the downloaded buffer
-for buffer_num in range(5):
+for buffer_num in range(files_number):
     # load data
     acts_file = f"{source_data_dir}/$store$_action_ckpt.{buffer_num}.gz"
     obss_file = f"{source_data_dir}/$store$_observation_ckpt.{buffer_num}.gz"

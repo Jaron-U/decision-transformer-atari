@@ -34,9 +34,15 @@ wget http://www.atarimania.com/roms/Roms.rar
 unrar x -r Roms.rar
 python3 -m atari_py.import_roms ROMS
 ```
-###
-Run the code
+### Run the code
+In this example, we loaded 5/50 files of the dataset. After processing the dataset, the size is 50GB.
 ```bash
-# get and process the dataset
+# get and process the dataset, it takes about 1 hour(Intel 14700)
 python3 ./data/create_dataset.py
+```
+
+```bash
+# train and evaluate the model
+# you can add the some arguments(see the run_dt_atari.py) with the command
+python3 ./run_dt_atari.py
 ```
