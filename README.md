@@ -3,7 +3,7 @@ This is a project to train a model to play Atari games(`Pong` in the example) us
 
 ## Code Reference
 The code is based on the following repositories:  
-official repository: https://github.com/kzl/decision-transformer/tree/  
+official repository: https://github.com/kzl/decision-transformer  
 minGPT: https://github.com/karpathy/minGPT/tree/master/mingpt  
 decision-transformer-tsmatz: https://github.com/tsmatz/decision-transformer  
 
@@ -17,14 +17,18 @@ $ sudo apt-get install -y make
 
 Install `gsutil`
 ```bash
+# way one
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 sudo apt-get update && sudo apt-get install google-cloud-cli
+
+# way two
+pip install gsutil
 ```
 
 Set a vertual environment
 And download these packages
 ```bash
-pip3 install torch numpy matplotlib opencv-python atari_py
+pip install torch numpy matplotlib opencv-python atari_py
 ```
 
 Install pre-trained data
@@ -34,6 +38,15 @@ wget http://www.atarimania.com/roms/Roms.rar
 unrar x -r Roms.rar
 python3 -m atari_py.import_roms ROMS
 ```
+
+```bash
+mkdir downloaded_game_data
+gsutil -m cp -R gs://atari-replay-datasets/dqn/Pong downloaded_game_data
+mkdir game_dataset
+cd game_dataset
+mkdir states
+```
+
 ### Run the code
 In this example, we loaded 5/50 files of the dataset. After processing the dataset, the size is 50GB.
 ```bash
