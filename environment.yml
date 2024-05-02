@@ -3,11 +3,11 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - matplotlib=3.8.4=py310hff52083_0
-  - mysql=5.7.24=h721c034_2
-  - numpy=1.26.4=py310hb13e2d6_0
-  - pip=23.3.1=py310h06a4308_0
-  - python=3.10.14=h955ad1f_0
+  - matplotlib=3.8.4
+  - mysql=5.7.24
+  - numpy=1.26.4
+  - pip=23.3.1
+  - python=3.10.14
   - pip:
       - atari-py==0.2.9
       - opencv-python==4.9.0.80
