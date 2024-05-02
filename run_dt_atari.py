@@ -7,8 +7,7 @@ import random
 import argparse
 import numpy as np
 from data.process_data import get_max_timesteps, process_data
-# from data.load_data import AtariPongDataset
-from data.load_data_hrpc import AtariPongDataset
+from data.load_data import AtariPongDataset
 from mingpt.model_atari import GPT, GPTConfig, Embeddings_Atari
 from mingpt.train_atari import TrainConfig, Trainer
 from mingpt.eval import eval_game
@@ -18,7 +17,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=123)
     parser.add_argument('--stack_size', type=int, default=4)
-    parser.add_argument('--epochs', type=int, default=1)
+    parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--chunk_size', type=int, default=10000)
     parser.add_argument('--step_size', type=int, default=50)

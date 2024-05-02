@@ -48,7 +48,7 @@ mkdir states
 ```
 
 ### Run the code
-In this example, we loaded 5/50 files of the dataset. After processing the dataset, the size is 50GB.
+In this example, we loaded 5/50 files of the dataset.
 ```bash
 # get and process the dataset, it takes about 1 hour(Intel 14700)
 python3 ./data/create_dataset.py

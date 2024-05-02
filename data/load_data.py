@@ -5,13 +5,15 @@ import os
 import pickle
 import math
 
+dest_dir = "game_dataset"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+states_file = np.memmap(f"{dest_dir}/states.dat", dtype='float32', mode="r", shape=(1000000, 4452, 84))
 
 # convert the np array data to torch tensor
 
-# get state array (step_size+stack_size-1) h, w) by file idx
-def get_state_from_index(dest_dir, step_size, stack_size, idx):
-    arr = np.load(f"{dest_dir}/states/{idx}.npy")
+# # get state array (step_size+stack_size-1) h, w) by file idx
+def get_state_from_index(step_size, stack_size, idx):
+    arr = states_file[idx]
     arr = arr.reshape(step_size + stack_size - 1, 84, 84)
     return arr
 
@@ -84,7 +86,7 @@ class AtariPongDataset(IterableDataset):
                 actions_batch = actions[i:i+self.batch_size,:]
                 timesteps_batch = timesteps[i:i+self.batch_size,:]
                 # get states
-                states_batch = [get_state_from_index(self.files_dir, self.step_size, self.stack_size, j) 
+                states_batch = [get_state_from_index(self.step_size, self.stack_size, j) 
                                 for j in states_meta[i:i+self.batch_size]]
                 states_batch = np.stack(states_batch, axis=0)
                 states_batch = toFrameStack(states_batch, self.stack_size)
