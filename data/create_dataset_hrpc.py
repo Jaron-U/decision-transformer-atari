@@ -4,7 +4,7 @@ import gzip
 import pickle
 from process_data import process_data
 
-files_number = 5
+files_number = 1
 game_name = "Pong"
 source_data_dir = f"downloaded_game_data/{game_name}/1/replay_logs"
 dest_dir = "game_dataset"
@@ -19,6 +19,7 @@ actions_chunk = []
 rtgs_chunk = []
 timesteps_chunk = []
 states_meta_chunk = []
+states_file = np.memmap(f"{dest_dir}/states.dat", dtype='float32', mode="w+", shape=(1000000, 4452, 84))
 
 # run loop for the downloaded buffer
 for buffer_num in range(files_number):
@@ -100,10 +101,13 @@ for buffer_num in range(files_number):
                 # save
                 for i in range(row_num):
                     # save state as single file for each state for memory efficiency.
-                    np.save(f"{dest_dir}/states/{cur_row}.npy", states[i])
+                    # np.save(f"{dest_dir}/states/{cur_row}.npy", states[i])
 
                     # add meta data for states
                     states_meta_chunk.append(cur_row)
+                    # add state data corresponding to the meta data
+                    states_file[cur_row] = states[i]
+
                     # save others in chunk (meta data)
                     actions_chunk.append(actions[i])
                     rtgs_chunk.append(rtgs[i])
@@ -124,6 +128,7 @@ for buffer_num in range(files_number):
                         timesteps_chunk = []
                         states_meta_chunk = []
                 print(f"Processed packs:{buffer_num + 1}/50 rows:{cur_row}", end="\r")
+    states_file.flush()
 
 # last (remaining) chunk
 if len(actions_chunk) != 0:
