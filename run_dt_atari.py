@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=123)
     parser.add_argument('--stack_size', type=int, default=4)
-    parser.add_argument('--epochs', type=int, default=10)
+    parser.add_argument('--epochs', type=int, default=5)
     parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--chunk_size', type=int, default=10000)
     parser.add_argument('--step_size', type=int, default=50)
@@ -64,7 +64,7 @@ if __name__ == "__main__":
        
     # train the model
     trainer = Trainer(trainConfig, dataset)
-    trainer.train_game()
+    losses = trainer.train_game()
 
     # # save the model
     # torch.save(model.state_dict(), f"{game_name}_model.pth")

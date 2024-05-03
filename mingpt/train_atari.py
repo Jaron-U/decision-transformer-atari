@@ -21,6 +21,7 @@ from collections import deque
 import cv2
 import torch.nn.functional as F
 import math
+from collections import deque
 
 class TrainConfig:
     def __init__(self, **kwargs):
@@ -111,6 +112,8 @@ class Trainer:
 
         # set optimizer
         optimizer = self.model.configure_optimizers(self.trainConfig)
+        moving_window_loss = deque(maxlen=50)
+        total_loss = []
 
         for epoch in range(self.epochs):
             for i, (states, actions, rtgs, timesteps) in enumerate(self.dataset):
@@ -146,4 +149,11 @@ class Trainer:
                 
                 print(f"epoch {epoch+1}/{self.epochs} iter {i + 1}/{total_batch}" 
                       f" - loss: {loss.item() :2.4f} - lr: {lr:e}", end="\r")
+                
+                moving_window_loss.append(loss.item())
+                total_loss.append(np.mean(moving_window_loss))
+                # release memory
+                del loss
+
         print("\nTraining done!")
+        return total_loss
