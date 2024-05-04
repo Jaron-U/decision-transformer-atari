@@ -7,7 +7,7 @@ import math
 
 dest_dir = "game_dataset"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-states_file = np.memmap(f"{dest_dir}/states.dat", dtype='float32', mode="r", shape=(1000000, 4452, 84))
+states_file = np.memmap(f"{dest_dir}/states.dat", dtype='float32', mode="r", shape=(1100000, 4452, 84))
 
 # convert the np array data to torch tensor
 

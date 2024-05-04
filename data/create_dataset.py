@@ -4,7 +4,7 @@ import gzip
 import pickle
 from process_data import process_data
 
-files_number = 5
+files_number = 50
 game_name = "Pong"
 source_data_dir = f"downloaded_game_data/{game_name}/1/replay_logs"
 dest_dir = "game_dataset"
@@ -19,7 +19,7 @@ actions_chunk = []
 rtgs_chunk = []
 timesteps_chunk = []
 states_meta_chunk = []
-states_file = np.memmap(f"{dest_dir}/states.dat", dtype='float32', mode="w+", shape=(1000000, 4452, 84))
+states_file = np.memmap(f"{dest_dir}/states.dat", dtype='float32', mode="w+", shape=(1100000, 4452, 84))
 
 # run loop for the downloaded buffer
 for buffer_num in range(files_number):

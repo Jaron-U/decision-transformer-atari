@@ -12,12 +12,13 @@ from mingpt.model_atari import GPT, GPTConfig, Embeddings_Atari
 from mingpt.train_atari import TrainConfig, Trainer
 from mingpt.eval import eval_game
 import atari_py
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=123)
     parser.add_argument('--stack_size', type=int, default=4)
-    parser.add_argument('--epochs', type=int, default=5)
+    parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--chunk_size', type=int, default=10000)
     parser.add_argument('--step_size', type=int, default=50)
@@ -66,8 +67,15 @@ if __name__ == "__main__":
     trainer = Trainer(trainConfig, dataset)
     losses = trainer.train_game()
 
+    # plot the losses
+    plt.figure(figsize=(10,5))
+    plt.plot(losses)
+    plt.xlabel('batch')
+    plt.ylabel('loss')
+    plt.savefig(f"{game_name}_losses.png")
+
     # # save the model
-    # torch.save(model.state_dict(), f"{game_name}_model.pth")
+    torch.save(model.state_dict(), f"{game_name}_model.pth")
 
     # model.load_state_dict(torch.load(f"{game_name}_model.pth"))
     # evaluate the model
