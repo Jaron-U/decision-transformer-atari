@@ -151,7 +151,8 @@ class Trainer:
                       f" - loss: {loss.item() :2.4f} - lr: {lr:e}", end="\r")
                 
                 moving_window_loss.append(loss.item())
-                total_loss.append(np.mean(moving_window_loss))
+                if i % 50 == 0:
+                    total_loss.append(np.mean(moving_window_loss))
                 # release memory
                 del loss
 

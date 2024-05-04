@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=123)
     parser.add_argument('--stack_size', type=int, default=4)
-    parser.add_argument('--epochs', type=int, default=10)
+    parser.add_argument('--epochs', type=int, default=5)
     parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--chunk_size', type=int, default=10000)
     parser.add_argument('--step_size', type=int, default=50)
@@ -29,6 +29,14 @@ if __name__ == "__main__":
 
     scr_dir = f"downloaded_game_data/{args.game}/1/replay_logs"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # print("")
+    # dest_dir = "game_dataset"
+    # step_size = args.step_size
+    # chunk_size = args.chunk_size
+    # print("Shuffle data and remove bias...")
+    # process_data(dest_dir, step_size, chunk_size)
+    # print("Done.")
 
     seed = args.seed
     random.seed(seed)
@@ -67,15 +75,16 @@ if __name__ == "__main__":
     trainer = Trainer(trainConfig, dataset)
     losses = trainer.train_game()
 
+    # save the model
+    torch.save(model.state_dict(), f"{game_name}_model.pth")
+
     # plot the losses
     plt.figure(figsize=(10,5))
     plt.plot(losses)
-    plt.xlabel('batch')
+    plt.xlabel('iter(X50)')
     plt.ylabel('loss')
     plt.savefig(f"{game_name}_losses.png")
 
-    # # save the model
-    torch.save(model.state_dict(), f"{game_name}_model.pth")
 
     # model.load_state_dict(torch.load(f"{game_name}_model.pth"))
     # evaluate the model
