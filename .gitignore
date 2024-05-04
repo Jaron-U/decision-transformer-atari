@@ -3,7 +3,7 @@
 /game_dataset/
 /HC ROMS/
 /ROMS/
-*.png
+pong.png
 *.rar
 */__pycache__/
 data/create_dataset_.py

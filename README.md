@@ -17,11 +17,11 @@ $ sudo apt-get install -y make
 
 Install `gsutil`
 ```bash
-# way one
+# sudo install
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 sudo apt-get update && sudo apt-get install google-cloud-cli
 
-# way two
+# pip install
 pip install gsutil
 ```
 
@@ -43,12 +43,11 @@ python3 -m atari_py.import_roms ROMS
 mkdir downloaded_game_data
 gsutil -m cp -R gs://atari-replay-datasets/dqn/Pong downloaded_game_data
 mkdir game_dataset
-cd game_dataset
-mkdir states
 ```
 
 ### Run the code
 In this example, we loaded 5/50 files of the dataset.
+Totol 50 files required 1.5TB storage.
 ```bash
 # get and process the dataset, it takes about 1 hour(Intel 14700)
 python3 ./data/create_dataset.py
