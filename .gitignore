@@ -8,3 +8,4 @@ pong.png
 */__pycache__/
 data/create_dataset_.py
 data/load_data_.py
+.gitignore

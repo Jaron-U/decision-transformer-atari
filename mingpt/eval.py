@@ -65,7 +65,7 @@ def eval_game(trainConfig: TrainConfig, model):
                                                  rtgs = batch_rtgs, timesteps = batch_timestep)
             
         print(f"Round {i+1}/10 reward: {rewards}", end="\r")
-    
+        
     total_returns = np.sum(total_reward)
     eval_return = np.mean(total_reward)
     print(f"Total return of 10 round: {total_returns}, Average return: {eval_return}")

@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument('--chunk_size', type=int, default=10000)
     parser.add_argument('--step_size', type=int, default=50)
     parser.add_argument('--game', type=str, default='Pong')
-    parser.add_argument('--batch_size', type=int, default=128)
+    parser.add_argument('--batch_size', type=int, default=256)
     parser.add_argument('--dest_dir', type=str, default='game_dataset')
     args = parser.parse_args()
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
                               max_timesteps=max_timesteps, step_size=args.step_size,
                               weight_decay=0.1, epochs=args.epochs,
                               learning_rate=args.learning_rate, betas=(0.9, 0.999),
-                              batch_size=args.batch_size, lr_decay=False)
+                              batch_size=args.batch_size, lr_decay=True)
        
     # train the model
     trainer = Trainer(trainConfig, dataset)
@@ -85,8 +85,7 @@ if __name__ == "__main__":
     plt.ylabel('loss')
     plt.savefig(f"{game_name}_losses.png")
 
-
-    # model.load_state_dict(torch.load(f"{game_name}_model.pth"))
+    # model.load_state_dict(torch.load(f"{game_name}_model_s.pth"))
     # evaluate the model
     eval_game(trainConfig, model)
 
